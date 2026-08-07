@@ -1,26 +1,13 @@
 import pygame as pg
 from models import Player, Weapon
 
-def handle_player_movement(player, keys):
-    if keys[pg.K_w] or keys[pg.K_UP]:
-        player.move_forward()
-
-    if keys[pg.K_s] or keys[pg.K_DOWN]:
-        player.move_backward()
-
-    if keys[pg.K_a] or keys[pg.K_LEFT]:
-        player.move_left()
-
-    if keys[pg.K_d] or keys[pg.K_RIGHT]:
-        player.move_right()
-
 def handle_player_shooting(player, keys):
     if keys[pg.K_SPACE]:
         if player.get_weapon() is not None:
             player.get_weapon().shoot()
 
 def handle_events(player, keys):
-    handle_player_movement(player, keys)
+    player.handle_input(keys)
     handle_player_shooting(player, keys)
 
 def handle_init():
