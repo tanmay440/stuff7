@@ -32,3 +32,7 @@ class Vector2:
         if mag != 0:
             return Vector2(self.x / mag, self.y / mag)
         return Vector2(0, 0)
+
+    def get_rotation_angle(self):
+        import math
+        return math.degrees(math.atan2(self.y, self.x))

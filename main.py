@@ -1,30 +1,23 @@
 import pygame as pg
 from models import Player, Weapon
 
-def handle_player_shooting(player, keys):
-    if keys[pg.K_SPACE]:
-        if player.get_weapon() is not None:
-            player.get_weapon().shoot()
-
 def handle_events(player, keys):
     player.handle_input(keys)
-    handle_player_shooting(player, keys)
 
 def handle_init():
     global player, clock, overlay, window
     pg.init()
-    pg.display.set_caption("My Game")
+    pg.display.set_caption("Movement and Shooting Example")
     window = pg.display.set_mode((800, 600))
-    image = pg.Surface((50, 50))
-    image.fill((255, 255, 255))
-    player = Player(image, 5)
+    image=pg.image.load("mainchar2.png").convert_alpha()
+    player = Player(image, 15)
     weapon_image = pg.Surface((50, 50))
     weapon_image.fill((255, 0, 0))
-    weapon = Weapon(weapon_image, timer=0.75)
+    projectile_image = pg.transform.scale(pg.image.load("projectile_old.png").convert_alpha(), (20, 20))
+    weapon = Weapon(weapon_image, timer=0.75, projectile_image=projectile_image, projectile_velocity=10)
     player.set_weapon(weapon)
     clock = pg.time.Clock()
-    overlay = pg.Surface((800, 600), pg.SRCALPHA)
-    overlay.fill((0, 0, 0, 64))
+    overlay = pg.image.load("bcgtile.png").convert_alpha()
 
 def main():
     for event in pg.event.get():
@@ -33,10 +26,12 @@ def main():
             exit()
     keys = pg.key.get_pressed()
     handle_events(player, keys)
-    dt = clock.tick(60) / 1000
+    dt = clock.tick(24) / 1000
     if player.get_weapon() is not None:
         player.get_weapon().update_canshoot(dt)
-    window.blit(overlay, (0, 0))
+    for x in range(0, window.get_width(), overlay.get_width()):
+        for y in range(0, window.get_height(), overlay.get_height()):
+            window.blit(overlay, (x, y))
     player.draw(window)
     pg.display.flip()
 
