@@ -9,11 +9,15 @@ class Player:
         self.facing_dir = FacingDir(Vector2(0, 0))
         self.weapon = None
         self.projectiles = []
+        self.temp_rect= None
 
     def draw(self, surface):
         tempimage = self.image
         tempimage = pg.transform.rotate(tempimage, -self.facing_dir.direction.get_rotation_angle()-90)
-        surface.blit(tempimage, self.rect)
+        self.temp_rect= tempimage.get_rect(center=self.rect.center)
+        self.temp_rect.x=surface.get_width()/2-self.temp_rect.width/2
+        self.temp_rect.y=surface.get_height()/2-self.temp_rect.height/2
+        surface.blit(tempimage, self.temp_rect)
         for x in self.projectiles:
             x.draw(surface)
 
@@ -44,7 +48,7 @@ class Player:
             if self.weapon is not None:
                 temp = self.weapon.shoot(self.facing_dir.direction, self.velocity)
                 if temp is not False:
-                    temp.rect.center = self.rect.center
+                    temp.rect.center = self.temp_rect.center
                     self.projectiles.append(temp)
                     return temp
 
