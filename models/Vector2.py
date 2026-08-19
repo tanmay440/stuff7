@@ -15,10 +15,8 @@ class Vector2:
     def __mul__(self, other):
         if isinstance(other, (int, float)):
             return Vector2(self.x * other, self.y * other)
-
         if isinstance(other, Vector2):
             return Vector2(self.y - other.y, self.x - other.x)
-
         return NotImplemented
 
     def __truediv__(self, scalar:float):
@@ -36,3 +34,6 @@ class Vector2:
     def get_rotation_angle(self):
         import math
         return math.degrees(math.atan2(self.y, self.x))
+
+    def __str__(self):
+        return f"Vector2({self.x}, {self.y})"

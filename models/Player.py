@@ -1,63 +1,38 @@
-from .FacingDir import FacingDir
-from .Vector2 import Vector2
 import pygame as pg
+from models.FacingDir import FacingDir
+from models.Vector2 import Vector2
+
 class Player:
-    def __init__(self, image, velocity=15):
+    def __init__(self, image, velocity=5):
         self.image = image
         self.velocity = velocity
         self.rect = self.image.get_rect(center=(400, 300))
-        self.facing_dir = FacingDir(Vector2(0, 0))
+        self.facing_dir = FacingDir(Vector2(1, 0))
         self.weapon = None
-        self.projectiles = []
-        self.temp_rect= None
 
-    def draw(self, surface):
-        tempimage = self.image
-        tempimage = pg.transform.rotate(tempimage, -self.facing_dir.direction.get_rotation_angle()-90)
-        self.temp_rect= tempimage.get_rect(center=self.rect.center)
-        self.temp_rect.x=surface.get_width()/2-self.temp_rect.width/2
-        self.temp_rect.y=surface.get_height()/2-self.temp_rect.height/2
-        surface.blit(tempimage, self.temp_rect)
-        for x in self.projectiles:
-            x.draw(surface)
+    def move(self, direction, dt):
+        self.rect.x += direction.x * self.velocity * dt * 60
+        self.rect.y += direction.y * self.velocity * dt * 60
 
-    def move(self, direction: Vector2):
-        self.rect.x += direction.x * self.velocity
-        self.rect.y += direction.y * self.velocity
-    def handle_input(self, keys):
+    def handle_input(self, keys, dt):
         direction = Vector2(0, 0)
-        if keys[pg.K_w] or keys[pg.K_UP]:
-            direction.y -= 1
-            self.facing_dir.facing_for_frames=0
-        if keys[pg.K_s] or keys[pg.K_DOWN]:
-            direction.y += 1
-            self.facing_dir.facing_for_frames=0
-        if keys[pg.K_a] or keys[pg.K_LEFT]:
-            direction.x -= 1
-            self.facing_dir.facing_for_frames=0
-        if keys[pg.K_d] or keys[pg.K_RIGHT]:
-            direction.x += 1
-            self.facing_dir.facing_for_frames=0
+        if keys[pg.K_w] or keys[pg.K_UP]:    direction.y -= 1
+        if keys[pg.K_s] or keys[pg.K_DOWN]:  direction.y += 1
+        if keys[pg.K_a] or keys[pg.K_LEFT]:  direction.x -= 1
+        if keys[pg.K_d] or keys[pg.K_RIGHT]: direction.x += 1
         if direction.x != 0 or direction.y != 0:
             self.facing_dir.direction = direction.normalize()
-        else:
-            self.facing_dir.facing_for_frames += 1
-        self.move(direction)
-        self.ammo_update()
-        if keys[pg.K_SPACE]:
-            if self.weapon is not None:
-                temp = self.weapon.shoot(self.facing_dir.direction, self.velocity)
-                if temp is not False:
-                    temp.rect.center = self.temp_rect.center
-                    self.projectiles.append(temp)
-                    return temp
+        self.move(direction, dt)
+        if (keys[pg.K_SPACE] or keys[pg.K_z] or keys[pg.K_x] or keys[pg.K_c])and self.weapon is not None:
+            bullet = self.weapon.shoot(self.facing_dir.direction, self.velocity, self.rect.center)
+            if bullet:
+                return bullet
+                
+        return None
 
-    def set_weapon(self, weapon):
-        self.weapon = weapon
-
-    def get_weapon(self):
-        return self.weapon
-
-    def ammo_update(self):
-        for x in self.projectiles:
-            x.update()
+    def draw(self, surface):
+        screen_center = (surface.get_width() // 2, surface.get_height() // 2)
+        angle = -self.facing_dir.direction.get_rotation_angle() - 90
+        rotated_img = pg.transform.rotate(self.image, angle)
+        render_rect = rotated_img.get_rect(center=screen_center)
+        surface.blit(rotated_img, render_rect)
