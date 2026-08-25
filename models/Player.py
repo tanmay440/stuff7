@@ -1,38 +1,45 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import pygame as pg
-from models.FacingDir import FacingDir
-from models.Vector2 import Vector2
 
-class Player:
-    def __init__(self, image, velocity=5):
-        self.image = image
-        self.velocity = velocity
-        self.rect = self.image.get_rect(center=(400, 300))
-        self.facing_dir = FacingDir(Vector2(1, 0))
-        self.weapon = None
+from models.templates.Creature import Creature
 
-    def move(self, direction, dt):
-        self.rect.x += direction.x * self.velocity * dt * 60
-        self.rect.y += direction.y * self.velocity * dt * 60
+if TYPE_CHECKING:
+    from models.MeleeHitbox import MeleeHitbox
+    from models.RangedProjectile import RangedProjectile
+    from models.templates.Weapon import Weapon
 
-    def handle_input(self, keys, dt):
-        direction = Vector2(0, 0)
-        if keys[pg.K_w] or keys[pg.K_UP]:    direction.y -= 1
-        if keys[pg.K_s] or keys[pg.K_DOWN]:  direction.y += 1
-        if keys[pg.K_a] or keys[pg.K_LEFT]:  direction.x -= 1
-        if keys[pg.K_d] or keys[pg.K_RIGHT]: direction.x += 1
-        if direction.x != 0 or direction.y != 0:
-            self.facing_dir.direction = direction.normalize()
-        self.move(direction, dt)
-        if (keys[pg.K_SPACE] or keys[pg.K_z] or keys[pg.K_x] or keys[pg.K_c])and self.weapon is not None:
-            bullet = self.weapon.shoot(self.facing_dir.direction, self.velocity, self.rect.center)
-            if bullet:
-                return bullet
-                
+FIRE_KEYS = (pg.K_SPACE, pg.K_z, pg.K_x, pg.K_c)
+
+
+class Player(Creature):
+
+    def __init__(
+        self,
+        image: pg.Surface | None,
+        pos: pg.math.Vector2,
+        weapon: Weapon | None = None,
+    ) -> None:
+        super().__init__(
+            image, pos, health=100.0, max_health=100.0, team="PLAYER", move_speed=300.0, weapon=weapon
+        )
+
+    def handle_input(self, keys, dt: float) -> RangedProjectile | MeleeHitbox | None:
+        direction = pg.math.Vector2(0, 0)
+        if keys[pg.K_w] or keys[pg.K_UP]:
+            direction.y -= 1
+        if keys[pg.K_s] or keys[pg.K_DOWN]:
+            direction.y += 1
+        if keys[pg.K_a] or keys[pg.K_LEFT]:
+            direction.x -= 1
+        if keys[pg.K_d] or keys[pg.K_RIGHT]:
+            direction.x += 1
+        if direction.length_squared() > 0:
+            direction = direction.normalize()
+        self.velocity = direction * self.move_speed
+        self.set_facing(direction)
+        if any(keys[key] for key in FIRE_KEYS):
+            return self.perform_attack(self.facing_dir)
         return None
-
-    def draw(self, surface):
-        screen_center = (surface.get_width() // 2, surface.get_height() // 2)
-        angle = -self.facing_dir.direction.get_rotation_angle() - 90
-        rotated_img = pg.transform.rotate(self.image, angle)
-        render_rect = rotated_img.get_rect(center=screen_center)
-        surface.blit(rotated_img, render_rect)
