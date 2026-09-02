@@ -19,6 +19,12 @@ WINDOW_SIZE = (800, 600)
 
 
 def load_assets():
+    """
+    Load image and font assets used by the game.
+
+    Returns:
+        A dictionary containing loaded images, generated surfaces, and fonts.
+    """
     player_img = pg.image.load("mainchar2.png").convert_alpha()
     tile_img = pg.image.load("bcgtile.png").convert_alpha()
     proj_img = pg.transform.scale(pg.image.load("projectile_old.png").convert_alpha(), (20, 20))
@@ -52,6 +58,14 @@ def load_assets():
 
 
 def spawn_world(assets):
+    """
+    Create the initial player, enemies, and pickups.
+
+    Args:
+        assets: Asset dictionary returned by `load_assets`.
+    Returns:
+        A tuple containing the player, enemy list, and pickup list.
+    """
     starter_weapon = RangedWeapon(
         image=None, projectile_img=assets["proj_img"], damage=10.0, cooldown=0.25, velocity=600.0
     )
@@ -81,6 +95,12 @@ def spawn_world(assets):
 
 
 def handle_init():
+    """
+    Initialize Pygame and construct the initial game state.
+
+    Returns:
+        The window, clock, player, enemies, pickups, tile map, and assets.
+    """
     pg.init()
     pg.display.set_caption("UML Refactor Demo")
     window = pg.display.set_mode(WINDOW_SIZE)
@@ -92,6 +112,15 @@ def handle_init():
 
 
 def handle_collisions(player, creatures, pickups, projectiles):
+    """
+    Resolve pickup collection and combat collisions for the current frame.
+
+    Args:
+        player: The player creature.
+        creatures: The current enemy collection.
+        pickups: The current pickup collection.
+        projectiles: Active ranged projectiles and melee hitboxes.
+    """
     if player.is_alive():
         for pickup in pickups:
             if pickup.is_alive() and player.rect.colliderect(pickup.rect):
@@ -118,12 +147,32 @@ def handle_collisions(player, creatures, pickups, projectiles):
 
 
 def draw_game_over(window, font):
+    """
+    Draw the game-over message centered in the game window.
+
+    Args:
+        window: Surface on which the message is rendered.
+        font: Font used to render the message.
+    """
     text = font.render("GAME OVER", True, (255, 255, 255))
     rect = text.get_rect(center=window.get_rect().center)
     window.blit(text, rect)
 
 
 def render(window, tile_map, player, creatures, pickups, projectiles, camera_offset, assets):
+    """
+    Render the world, entities, HUD, and game-over overlay.
+
+    Args:
+        window: Destination display surface.
+        tile_map: Background tile map to draw.
+        player: Player creature to render and use for the HUD.
+        creatures: Active enemy collection.
+        pickups: Active pickup collection.
+        projectiles: Active attack entities.
+        camera_offset: World-to-screen translation vector.
+        assets: Asset dictionary containing fonts and surfaces.
+    """
     tile_map.draw(window, camera_offset)
     for pickup in pickups:
         pickup.draw(window, camera_offset)
@@ -143,6 +192,11 @@ def render(window, tile_map, player, creatures, pickups, projectiles, camera_off
 
 
 def main():
+    """
+    Run the main event, update, collision, and rendering loop.
+
+    The loop continues until the window is closed or Escape is pressed.
+    """
     window, clock, player, creatures, pickups, tile_map, assets = handle_init()
     projectiles = []
 
